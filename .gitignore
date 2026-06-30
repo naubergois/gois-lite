@@ -1,0 +1,33 @@
+# secrets / runtime
+.env
+.env.*
+!.env.example
+.stack/
+.venv/
+hermes/logs/
+*.log
+*.log.*
+
+# python / tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# local data
+tmp/
+var/
+output/
+*.db
+*.jpeg
+*.jpg
+*.png
+ruvector.db
+agentdb.rvf.lock

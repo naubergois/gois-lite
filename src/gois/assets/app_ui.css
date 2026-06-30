@@ -1,0 +1,204 @@
+
+  button.ctrl, a.ctrl { background: var(--panel-2); color: var(--fg); border: 1px solid var(--border);
+                         border-radius: 8px; padding: 8px 14px; font-size: 12px; font-family: var(--mono);
+                         cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+                         justify-content: center; gap: 6px; }
+  button.ctrl:hover, a.ctrl:hover { border-color: var(--accent); color: var(--fg); }
+  button.ctrl.primary { background: var(--accent); color: #0f1115; border-color: var(--accent);
+                         font-weight: 600; }
+  button.ctrl.primary:hover { filter: brightness(1.06); }
+  button.ctrl:disabled { opacity: .55; cursor: not-allowed; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px;
+           background: var(--panel-2); border: 1px solid var(--border);
+           color: var(--muted); font-size: 11px; font-family: var(--mono); }
+  .badge.ok  { color: var(--ok);  border-color: rgba(61,220,132,.35); background: rgba(61,220,132,.08); }
+  .badge.bad { color: var(--bad); border-color: rgba(255,90,95,.35); background: rgba(255,90,95,.08); }
+  .badge.warn { color: var(--warn); border-color: rgba(255,180,84,.35); background: rgba(255,180,84,.08); }
+  .badge.accent { color: var(--accent); border-color: rgba(106,169,255,.35);
+                  background: rgba(106,169,255,.10); }
+  .pill { display: inline-flex; align-items: center; gap: 6px;
+          padding: 3px 10px; border-radius: 999px; font-size: 11px;
+          font-family: var(--mono); border: 1px solid var(--border); }
+  .pill.running { color: var(--accent); background: rgba(106,169,255,.10); }
+  /* === Kanban card accordion (expand/collapse) === */
+  .qcm-card-wrap { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 10px;
+                    background: var(--panel-2); overflow: hidden; transition: box-shadow .15s; }
+  .qcm-card-wrap:hover { box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  .qcm-card-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+                      cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+                      transition: background .12s; }
+  .qcm-card-header:hover { background: rgba(106,169,255,.06); }
+  .qcm-card-header .arrow { flex-shrink: 0; width: 18px; height: 18px; display: inline-flex;
+                             align-items: center; justify-content: center; font-size: 12px;
+                             color: var(--muted); transition: transform .2s; }
+  .qcm-card-header .arrow.open { transform: rotate(90deg); }
+  .qcm-card-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--fg);
+                     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .qcm-card-body { display: none; padding: 0 14px 12px 40px; font-size: 12px;
+                    color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); }
+  .qcm-card-body.open { display: block; }
+  .qcm-card-body .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 6px; }
+  .qcm-card-body .meta-item { font-size: 11px; font-family: var(--mono); color: var(--muted); }
+
+  
+  
+  /* === Global search / Cmd+K (Usab-002) === */
+  .qcm-search-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                         z-index: 9999; background: rgba(0,0,0,.4);
+                         display: none; align-items: flex-start; justify-content: center;
+                         padding-top: 80px; backdrop-filter: blur(2px); }
+  .qcm-search-overlay.open { display: flex; }
+  .qcm-search-modal { background: var(--panel); border: 1px solid var(--border);
+                       border-radius: 14px; width: 560px; max-width: 90vw;
+                       max-height: 70vh; display: flex; flex-direction: column;
+                       box-shadow: 0 12px 48px rgba(0,0,0,.3); overflow: hidden; }
+  .qcm-search-input-wrap { display: flex; align-items: center; gap: 10px;
+                            padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .qcm-search-input-wrap input { flex: 1; border: none; background: transparent;
+                                   font-size: 16px; outline: none; color: var(--fg); }
+  .qcm-search-input-wrap input::placeholder { color: var(--muted); }
+  .qcm-search-shortcut { font-size: 11px; color: var(--muted);
+                          background: var(--panel-2); padding: 2px 8px;
+                          border-radius: 4px; border: 1px solid var(--border); }
+  .qcm-search-results { flex: 1; overflow-y: auto; padding: 6px 0; }
+  .qcm-search-result { display: flex; align-items: center; gap: 10px;
+                        padding: 10px 16px; cursor: pointer; transition: background .1s; }
+  .qcm-search-result:hover, .qcm-search-result.highlight { background: var(--accent);
+                            color: #fff; }
+  .qcm-search-result .icon { font-size: 16px; width: 28px; text-align: center; }
+  .qcm-search-result .info { flex: 1; min-width: 0; }
+  .qcm-search-result .title { font-size: 13px; font-weight: 500; }
+  .qcm-search-result .desc { font-size: 11px; color: var(--muted); overflow: hidden;
+                              text-overflow: ellipsis; white-space: nowrap; }
+  .qcm-search-result:hover .desc, .qcm-search-result.highlight .desc { color: rgba(255,255,255,.7); }
+  .qcm-search-empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+  .qcm-search-footer { padding: 8px 16px; border-top: 1px solid var(--border);
+                        font-size: 11px; color: var(--muted); display: flex; gap: 14px; }
+  .qcm-search-footer kbd { background: var(--panel-2); padding: 1px 6px;
+                            border-radius: 3px; border: 1px solid var(--border);
+                            font-family: var(--mono); font-size: 10px; }
+/* === Auto-save indicator (Usab-005) === */
+  .qcm-save-indicator { display: inline-flex; align-items: center; gap: 5px;
+                         font-size: 11px; color: var(--muted); padding: 2px 8px;
+                         border-radius: 4px; transition: all .2s; }
+  .qcm-save-indicator.saving { color: #f0ad4e; }
+  .qcm-save-indicator.saved { color: #5cb85c; }
+  .qcm-save-indicator.error { color: #d9534f; }
+  .qcm-save-indicator .spin { display: inline-block; animation: qcm-spin .8s linear infinite; }
+  @keyframes qcm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* === Breadcrumb navigation (Usab-008) === */
+  .qcm-breadcrumb { display: flex; align-items: center; gap: 6px; padding: 8px 20px;
+                     font-size: 12px; color: var(--muted); background: var(--panel);
+                     border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .qcm-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .qcm-breadcrumb a:hover { text-decoration: underline; }
+  .qcm-breadcrumb .sep { color: var(--border); font-size: 10px; user-select: none; }
+  .qcm-breadcrumb .current { color: var(--fg); font-weight: 600; }
+  .qcm-breadcrumb .back-btn { display: inline-flex; align-items: center; gap: 4px;
+                               cursor: pointer; color: var(--muted); font-size: 12px;
+                               padding: 2px 8px; border: 1px solid var(--border);
+                               border-radius: 6px; background: var(--panel-2);
+                               transition: all .12s; }
+  .qcm-breadcrumb .back-btn:hover { background: var(--accent); color: #fff; }
+/* === Responsive / Mobile layout (Usab-007) === */
+  .app-nav-inner { flex-wrap: wrap; }
+  .nav-desktop-only { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .nav-mobile-toggle { display: none; background: none; border: none; color: var(--fg);
+                        font-size: 22px; cursor: pointer; padding: 4px 8px;
+                        border-radius: 6px; transition: background .12s; }
+  .nav-mobile-toggle:hover { background: var(--panel-2); }
+  .nav-mobile-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 768px) {
+    .nav-desktop-only { display: none; position: fixed; top: 64px; left: 0; right: 0;
+                         bottom: 0; background: var(--bg); z-index: 800;
+                         flex-direction: column; align-items: stretch; padding: 12px 16px;
+                         overflow-y: auto; gap: 6px; }
+    .nav-desktop-only.open { display: flex; }
+    .nav-mobile-toggle { display: inline-flex; align-items: center; justify-content: center; }
+    .nav-desktop-only a, .nav-desktop-only button.ctrl { width: 100%; justify-content: flex-start;
+                                                          padding: 12px 14px; font-size: 14px; }
+    .app-nav-inner { padding: 8px 12px; min-height: 56px; }
+    .qcm-breadcrumb { font-size: 11px; padding: 6px 12px; overflow-x: auto;
+                       -webkit-overflow-scrolling: touch; white-space: nowrap; }
+    .qcm-search-modal { width: 95vw; max-height: 85vh; }
+    .qcm-search-overlay { padding-top: 40px; }
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .qcm-card-header { padding: 8px 10px; }
+    .qcm-card-title { font-size: 12px; }
+    .qcm-card-body { padding: 0 10px 10px 32px; }
+  }
+  @media (max-width: 480px) {
+    .app-nav .brand span { display: none; }
+    .qcm-breadcrumb .back-btn span { display: none; }
+    button.ctrl, a.ctrl { padding: 8px 12px; font-size: 12px; min-height: 36px; }
+    .badge, .pill { font-size: 10px; padding: 2px 7px; }
+    /* DESIGN: touch-friendly form inputs on mobile */
+    input[type="text"], input[type="search"], input[type="number"],
+    input[type="password"], input[type="email"], textarea, select {
+      font-size: 16px !important; /* prevents iOS zoom on focus */
+      min-height: 40px;
+    }
+    /* DESIGN: ensure card headers are tappable */
+    .qcm-card-header { min-height: 44px; padding: 8px 12px; }
+    .qcm-card-body { font-size: 13px; }
+  }
+  @media (max-width: 380px) {
+    /* DESIGN: iPhone SE / tiny screens — reduce nav padding, smaller badges */
+    .app-nav-inner { padding: 4px 6px; }
+    .qcm-tabbar .qcm-tab { padding: 0 6px; font-size: 11px; gap: 4px; }
+    .qcm-tabbar .qcm-tab-icon .qcm-ico { width: 15px; height: 15px; }
+    .qcm-breadcrumb { padding: 4px 8px; font-size: 10px; }
+    .qcm-search-modal { border-radius: 10px; }
+  }
+/* === Onboarding / Tour guiado (Usab-006) === */
+  .qcm-onboarding-overlay { position: fixed; inset: 0; z-index: 99998;
+                              background: rgba(0,0,0,.55); display: none;
+                              align-items: center; justify-content: center;
+                              backdrop-filter: blur(3px); }
+  .qcm-onboarding-overlay.open { display: flex; }
+  .qcm-onboarding-card { background: var(--panel); border: 1px solid var(--border);
+                          border-radius: 16px; max-width: 420px; width: 90vw;
+                          box-shadow: 0 16px 64px rgba(0,0,0,.4); overflow: hidden;
+                          animation: qcm-onboard-in .25s ease-out; }
+  @keyframes qcm-onboard-in { from { opacity: 0; transform: translateY(12px) scale(.96); }
+                               to { opacity: 1; transform: translateY(0) scale(1); } }
+  .qcm-onboarding-card .header { padding: 20px 24px 0; display: flex; align-items: flex-start;
+                                  gap: 14px; }
+  .qcm-onboarding-card .header .emoji { font-size: 28px; line-height: 1; flex-shrink: 0; }
+  .qcm-onboarding-card .header h2 { font-size: 17px; font-weight: 700; color: var(--fg);
+                                     margin: 0; line-height: 1.3; }
+  .qcm-onboarding-card .header p { font-size: 13px; color: var(--muted); margin: 4px 0 0;
+                                    line-height: 1.4; }
+  .qcm-onboarding-card .steps { padding: 16px 24px 8px; display: flex; flex-direction: column;
+                                 gap: 4px; }
+  .qcm-onboarding-card .step { display: flex; align-items: center; gap: 12px;
+                                padding: 8px 10px; border-radius: 10px; cursor: pointer;
+                                transition: background .12s; }
+  .qcm-onboarding-card .step:hover { background: var(--panel-2); }
+  .qcm-onboarding-card .step .dot { width: 28px; height: 28px; border-radius: 50%;
+                                     display: flex; align-items: center; justify-content: center;
+                                     font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .qcm-onboarding-card .step .dot.done { background: var(--ok); color: #0f1115; }
+  .qcm-onboarding-card .step .dot.cur { background: var(--accent); color: #fff;
+                                         box-shadow: 0 0 0 3px rgba(106,169,255,.25); }
+  .qcm-onboarding-card .step .dot.pending { background: var(--panel-2); color: var(--muted);
+                                             border: 1px solid var(--border); }
+  .qcm-onboarding-card .step .label { font-size: 13px; color: var(--fg); font-weight: 500; }
+  .qcm-onboarding-card .step .desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .qcm-onboarding-card .footer { padding: 12px 24px 20px; display: flex;
+                                  align-items: center; justify-content: space-between; gap: 10px; }
+  .qcm-onboarding-card .footer .skip { background: none; border: none; color: var(--muted);
+                                       font-size: 12px; cursor: pointer; padding: 6px 10px;
+                                       border-radius: 8px; transition: color .12s; }
+  .qcm-onboarding-card .footer .skip:hover { color: var(--fg); }
+  .qcm-onboarding-card .footer .next { background: var(--accent); color: #0f1115;
+                                       border: none; padding: 8px 20px; border-radius: 10px;
+                                       font-size: 13px; font-weight: 600; cursor: pointer;
+                                       transition: filter .12s; }
+  .qcm-onboarding-card .footer .next:hover { filter: brightness(1.08); }
+  .qcm-onboarding-card .footer .next:disabled { opacity: .5; cursor: not-allowed; }
+  .qcm-onboarding-card .footer .dots { display: flex; gap: 6px; }
+  .qcm-onboarding-card .footer .dots span { width: 6px; height: 6px; border-radius: 50%;
+                                             background: var(--border); transition: all .2s; }
+  .qcm-onboarding-card .footer .dots span.active { background: var(--accent); width: 18px;
+                                                    border-radius: 3px; }

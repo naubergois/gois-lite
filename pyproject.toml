@@ -1,0 +1,126 @@
+[project]
+name = "gois"
+version = "0.1.0"
+description = "gois — Generative Orchestration Artificial Intelligence Swarm: health-check monitor for QClaw with LLM recovery"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.40",
+    "httpx>=0.27",
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+    "pywebview>=5.3",
+    "edge-tts>=6.1",
+    "prometheus-client>=0.20",
+    "chromadb>=0.5",
+    "qrcode>=7.4",
+    "croniter>=6.0.0",
+    "playwright>=1.40",
+    "boto3>=1.34",
+    "pymongo>=4.6",
+    "redis>=5.0",
+    "google-genai>=1.0.0",
+    "pillow>=10.0",
+    "pypdf>=4.0",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+postgres = [
+    "psycopg[binary]>=3.2",
+]
+# Fase 0 — gateway/observabilidade LLM (LiteLLM + Langfuse). Opcional: o
+# llm_gateway funciona sem estes pacotes (ledger JSONL local), mas o proxy
+# LiteLLM e o tracing Langfuse exigem-nos.
+observability = [
+    "litellm>=1.40",
+    "langfuse>=2.0",
+]
+# Fase 1 — orquestração executável de swarms. Opcional: swarm_graph tem motor
+# sequencial determinístico embutido; langgraph só é necessário para o motor
+# baseado em grafo com checkpointing nativo.
+orchestration = [
+    "langgraph>=0.2",
+]
+# Fase 2 — memória compartilhada (blackboard). Opcional: o backend local (JSONL
+# por swarm) funciona sem dependências; mem0 habilita recuperação semântica.
+memory = [
+    "mem0ai>=0.1",
+]
+# Fase 3 — avaliação de qualidade/regressão de swarms. Opcional: o backend local
+# (heurístico) funciona sem deps; deepeval habilita avaliação semântica via LLM.
+eval = [
+    "deepeval>=1.0",
+]
+# Fase 4 — roteamento custo/qualidade aprendido. Opcional: o cost_router tem
+# backend heurístico embutido (offline); routellm habilita o router aprendido.
+routing = [
+    "routellm>=0.2",
+]
+# Roteiro Viral embebido (API in-process: livros, cursos, virtual band, storyboard, …)
+roteiro-viral = [
+    "fastapi>=0.128",
+    "uvicorn>=0.40",
+    "python-multipart>=0.0.9",
+    "motor>=3.7",
+    "pydantic-settings>=2.12",
+    "python-dotenv>=1.0",
+    "google-generativeai>=0.8",
+    "langgraph>=1.0",
+    "beautifulsoup4>=4.12",
+    "Markdown>=3.7",
+    "pillow-heif>=0.18",
+    "PyPDF2>=3.0",
+    "requests>=2.32",
+    "ebooklib>=0.18",
+    "python-docx>=1.1",
+    "openpyxl>=3.1",
+    "pandas>=2.0",
+    "anthropic>=0.32",
+    "duckduckgo-search>=8.0",
+    "reportlab>=4.4",
+    "genanki>=0.13",
+    "matplotlib>=3.8",
+    "plotly>=5.24",
+    "replicate>=1.0",
+    "yt-dlp>=2026.2",
+    "youtube-transcript-api>=0.6",
+    "mcp[cli]>=1.26",
+]
+# Desktop UI automation (Touchpoint MCP — accessibility + CDP)
+touchpoint = [
+    "touchpoint-py>=0.3.0",
+]
+
+[project.scripts]
+gois = "gois.__main__:main"
+gois-webapp = "gois.webapp:main"
+gois-statusapp = "gois.status_app:main"
+gois-article-md = "gois.article_md_generator:main"
+qclaw-cards-mcp = "gois.mcp_cards_server:run_stdio_server"
+qclaw-skills-mcp = "gois.mcp_skills_server:run_stdio_server"
+qclaw-swarm-mcp = "gois.mcp_swarm_server:run_stdio_server"
+qclaw-memclaw-mcp = "gois.mcp_memclaw_server:main"
+qclaw-cards-sse = "gois.mcp_sse_server:start_sse_server"
+kdp-publish = "gois.kdp.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gois", "src/qclawmonitor"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "mongo_kanban: tests that require MongoDB-backed kanban (not YAML fallback)",
+    "mongo_production: opt out of isolated MONGODB_DB (tests production-db guards)",
+    "runtime_redis: tests that require Redis-backed runtime state",
+    "runtime_mongo: tests that require MongoDB-backed runtime blobs",
+    "wa_business_hours: tests that enforce WhatsApp business-hours policy",
+]

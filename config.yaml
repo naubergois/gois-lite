@@ -1,0 +1,411 @@
+agent:
+  api_key_env: DEEPSEEK_API_KEY
+  base_url: https://api.deepseek.com
+  max_tool_iterations: 1000
+  model: deepseek-chat
+  system_prompt: 'You are an SRE agent responsible for diagnosing and recovering the
+    qclaw service.
+
+    Use the available tools to: probe the health endpoint, inspect process state,
+
+    read log tails, and as a last resort restart the service. Be conservative:
+
+    gather evidence first, restart only when the failure mode requires it.
+
+    '
+  timeout_seconds: 90
+auth:
+  allow_open_registration: true
+  bootstrap_admin_password: admin
+  bootstrap_admin_username: admin
+  data_dir: ./.stack/accounts
+  enabled: true
+  reset_bootstrap_admin_password: true
+  session_ttl_seconds: 604800
+cache_storage:
+  enabled: true
+  fallback_to_stack: true
+  root_dir: /Volumes/NAUBER/HomeOffload/caches
+cron_concurrency:
+  enabled: true
+  max_concurrent: 6
+  slot_ttl_minutes: 45
+dashboard_render:
+  ruflo_poll_ms: 15000
+  status_poll_ms: 3000
+  swarm_poll_ms: 20000
+error_log:
+  enabled: true
+  include_monitor_events: true
+  max_errors: 500
+  tail_lines_per_file: 400
+hermes:
+  dashboard_url: http://127.0.0.1:9119
+  expected_status: 200
+  gateway_port_file: null
+  hang_check:
+    enabled: false
+  health_url: http://127.0.0.1:9119
+  log_paths:
+  - ./.stack/hermes/logs/gateway.log
+  - ./.stack/hermes/logs/errors.log
+  - ./.stack/hermes/logs/agent.log
+  name: hermes
+  process_pattern: hermes dashboard
+  start_command:
+  - hermes
+  - gateway
+  - start
+  stop_command:
+  - hermes
+  - gateway
+  - stop
+  timeout_seconds: 10.0
+  working_dir: null
+hermes_agent_create:
+  clone_from_default: true
+  cron_accept_hooks: true
+  cron_timeout_seconds: 120
+  dashboard_api_timeout_seconds: 180
+  dashboard_ready_poll_seconds: 2
+  dashboard_ready_wait_seconds: 90
+  default_schedule: every 24h
+  enabled: false
+  kanban_allow_any_workdir: true
+  pause_cron_jobs_during_create: true
+  profiles_cache_seconds: 120
+  profiles_enrich_local_meta: false
+  schedule_enabled: true
+  seed_role_catalog_on_start: true
+  seed_role_catalog_use_filesystem: true
+  skill_categories:
+  - software-development
+hermes_cron_diagnostic_agent:
+  auto_run_on_log_match: false
+  auto_run_on_scheduler_down: false
+  cooldown_seconds: 300
+  enabled: true
+  llm_enabled: true
+  max_attempts_per_run: 8
+  profile_id: hermes-cron-diagnostic
+  seed_profile_on_start: true
+hermes_cron_recovery:
+  accept_hooks: true
+  cooldown_seconds: 600
+  enabled: false
+  ensure_gateway: true
+  ensure_gateway_cooldown_seconds: 300
+  ensure_gateway_interval_seconds: 120
+  jobs_path: /Volumes/NAUBER/gois-lite/hermes/cron/jobs.json
+  swarm_only: true
+  timeout_seconds: 3600
+  trigger_patterns:
+  - hermes_cron_failed
+hermes_cron_scheduler_agent:
+  auto_recover: false
+  cooldown_seconds: 600
+  enabled: true
+  llm_enabled: true
+  max_attempts_per_run: 5
+  profile_id: hermes-cron-recovery
+  seed_profile_on_start: true
+hermes_dashboard:
+  cooldown_seconds: 60
+  enabled: false
+  interval_seconds: 60
+  start_command:
+  - hermes
+  - dashboard
+  - --no-open
+  - --skip-build
+  startup_timeout_seconds: 30
+hermes_keepalive:
+  cooldown_seconds: 30
+  enabled: true
+  failure_threshold: 2
+  log_trigger_patterns:
+  - hermes_gateway_shutdown
+  - hermes_gateway_stopped
+  - hermes_gateway_exit
+  - hermes_gateway_crash
+  max_recovery_attempts: 10
+hermes_recovery_agent:
+  enabled: true
+  escalate_after_keepalive_failure: true
+  llm_enabled: true
+  profile_id: hermes-recovery
+  seed_profile_on_start: true
+  use_llm_instead_of_keepalive: false
+http:
+  enabled: true
+  host: 0.0.0.0
+  port: 9102
+llm_gateway:
+  enabled: true
+  usage_log_enabled: true
+  usage_log_path: ./.stack/observability/llm_usage.jsonl
+  usage_log_preview_chars: 0
+log_scanner:
+  enabled: true
+  interval_seconds: 30
+  paths:
+  - /private/tmp/whatsapp-bridge-daemon.log
+  - /private/tmp/qclaw-listener.log
+  - ~/.qclaw-oversea/logs/gateway.err.log
+  - ~/.qclaw-oversea/logs/gateway.log
+  patterns:
+  - name: service_connection_error
+    pattern: Service connection error
+  - name: auto_recovery_message
+    pattern: auto-recovery
+  - name: restart_app_message
+    pattern: try restarting the app
+  - name: sync_dead
+    pattern: Sync dead
+  - name: sync_crash
+    pattern: Sync exited \(null\)
+  - name: stale_sync_kill
+    pattern: Killed stale sync PID
+  - name: gateway_startup_failed
+    pattern: Gateway failed to start
+  - name: spawn_etimedout
+    pattern: spawnSync .* ETIMEDOUT
+  - name: ws_abnormal_close
+    pattern: webchat disconnected code=100[16]
+  - name: ws_service_restart
+    pattern: code=1012 reason=service restart
+  - name: health_monitor_restart
+    pattern: 'health-monitor: restarting'
+  - name: hermes_gateway_shutdown
+    pattern: Received SIGTERM — initiating shutdown
+  - name: hermes_gateway_stopped
+    pattern: Gateway stopped
+  - name: hermes_gateway_exit
+    pattern: Exiting with code 1
+  - name: hermes_cron_failed
+    pattern: 'cron\.scheduler: Job .* failed'
+  - name: hermes_gateway_crash
+    pattern: gateway\.exit_nonzero
+  trigger_recovery: true
+media_storage:
+  enabled: true
+  fallback_to_stack: true
+  root_dir: /Volumes/NAUBER/HomeOffload/qclaw-media
+monitor:
+  cooldown_seconds: 60
+  failure_threshold: 3
+  interval_seconds: 15
+  leader_election:
+    enabled: true
+    file_lock_name: .monitor-leader.lock
+    lease_seconds: 30
+    lock_key: monitor:leader
+    renew_interval_seconds: 10
+  max_recovery_attempts: 5
+notifier:
+  log_file: ./gois.log
+  webhook_url: null
+openclaw_chat:
+  async_send: true
+  attachments_temp_dir: ./.stack/chat/attachments
+  auto_title_after_messages: 2
+  backend: deepseek
+  chroma_enabled: true
+  chroma_path: ./.stack/chat/chroma
+  context_retrieval_limit: 4
+  default_agent: main
+  default_model_id: deepseek-chat
+  default_session_key: agent:main:gois-dashboard
+  desktop_control_enabled: false
+  desktop_screenshot_max_width: 1280
+  desktop_screenshot_quality: 70
+  enabled: true
+  heygen_mcp_enabled: false
+  history_db_path: ./.stack/chat/history.sqlite3
+  history_enabled: true
+  history_limit: 20
+  max_attachment_bytes: 8388608
+  max_attachments: 6
+  max_tool_iterations: 20
+  messages_limit: 120
+  qclaw_tools_enabled: true
+  send_timeout_seconds: 600
+  sessions_limit: 80
+  shell_enabled: false
+  shell_max_output_chars: 12000
+  shell_timeout_seconds: 120
+  token_usage_mode: balanced
+  openclaw_connection_enabled: false
+  fastpath_enabled: false
+  external_mcp_enabled: false
+  project_memory_enabled: false
+  suno_mcp_enabled: false
+  seedance_mcp_enabled: false
+  virtual_band_enabled: false
+  roteiro_thumbnails_enabled: false
+  roteiro_mongo_enabled: false
+  roteiro_api_enabled: false
+openclaw_doctor:
+  bin_path: null
+  cooldown_seconds: 300
+  enabled: false
+  mjs_path: null
+  node_path: null
+  timeout_seconds: 120
+  trigger_patterns:
+  - service_connection_error
+  - auto_recovery_message
+  - gateway_startup_failed
+  - restart_app_message
+qclaw:
+  expected_status: 200
+  gateway_port_file: ~/.qclaw-oversea/qclaw.json
+  hang_check:
+    app_name: QClaw
+    enabled: false
+    failure_threshold: 4
+    timeout_seconds: 8.0
+  health_url: http://127.0.0.1:61784/
+  log_paths:
+  - /private/tmp/whatsapp-bridge-daemon.log
+  name: qclaw
+  process_pattern: /Applications/QClaw.app/Contents/MacOS/QClaw
+  start_command:
+  - open
+  - -a
+  - QClaw
+  stop_command:
+  - osascript
+  - -e
+  - tell application "QClaw" to quit
+  timeout_seconds: 10.0
+  working_dir: null
+reaper:
+  enabled: true
+  interval_seconds: 60
+  kill_orphan_helpers: true
+  min_age_seconds: 5.0
+  sigterm_grace_seconds: 2.0
+  target_pattern: (/Applications/QClaw\.app/Contents/|openclaw-(gateway|agent)|hermes
+    gateway run|\.hermes/hermes-agent/)
+ruflo_chat:
+  command_timeout_seconds: 45
+  enabled: false
+  hosted_ui_url: https://flo.ruv.io/
+  local_ui_url: http://127.0.0.1:3000/
+  memory_search_enabled: true
+  memory_search_limit: 5
+  messages_limit: 120
+  ruflo_args: []
+  ruflo_bin: /Users/naubergois/.local/lib/ruflo-cli/node_modules/ruflo/bin/ruflo.js
+  sessions_limit: 80
+  status_alert_latency_ms: 12000
+  status_cache_seconds: 5
+  status_probe_hive: false
+  status_probe_timeout_seconds: 8
+  user_checkin_interval_seconds: 5
+skill_discovery:
+  bundled_repo_skills: false
+  clawhub_base_url: https://clawhub.ai
+  clawhub_browse_all: true
+  clawhub_enabled: true
+  clawhub_limit_per_query: 8
+  clawhub_search_queries: []
+  enabled: true
+  hermes_recommended: true
+  interval_seconds: 86400
+  max_suggestions: 12
+  notify_dashboard: true
+  notify_whatsapp: false
+  startup_delay_seconds: 180
+  state_path: ./.stack/skill_suggestions/state.json
+state:
+  path: ./gois.state.json
+swarm_memory:
+  agentdb_path: ./.swarm/memory.db
+  backend: agentdb
+  db_backup_keep: 3
+  db_lock_enabled: true
+  db_maintenance_enabled: true
+  db_maintenance_interval_seconds: 3600
+  db_min_free_mb: 512
+  enabled: true
+  retrieval_top_k: 3
+  store_dir: ./.stack/swarms
+swarm_robots:
+  cache_seconds: 20
+  sse_chunk_size: 8
+  sse_enabled: true
+swarm_routing:
+  checkpoint_stale_seconds: 600
+  conditional_handoff: false
+  cost_quality_routing: true
+  cost_router_backend: heuristic
+  cost_threshold: 0.5
+  hitl_enabled: true
+  max_steps: 50
+  require_approval_for:
+  - deploy
+  - release
+  - reviewer
+swarm_ruflo_a2a:
+  delegate_after_run: true
+  enabled: false
+  include_local_summary: true
+  peer_agent_urls:
+  - http://127.0.0.1:9101
+  timeout_seconds: 120
+swarm_ruflo_coordinator:
+  agentdb_path: ./.swarm/memory.db
+  cli_timeout_seconds: 20
+  enabled: false
+  reorder_agents: true
+  route_before_run: true
+  start_swarm: true
+  strategy: development
+swarm_ruflo_engine:
+  agentdb_path: ./.swarm/memory.db
+  cli_timeout_seconds: 45
+  default_engine: ruflo
+  enabled: false
+  fallback_to_hermes: true
+  hitl_enabled: true
+  init_before_run: true
+  max_agents: 15
+  mcp_timeout_seconds: 60
+  parallel_start: true
+  route_before_run: true
+  spawn_timeout_seconds: 180
+  strategy: specialized
+  task_type: development
+  topology: hierarchical-mesh
+  transport: auto
+  use_hermes_executor: true
+swarm_ruflo_hooks:
+  agentdb_path: ./.swarm/memory.db
+  cli_timeout_seconds: 15
+  enabled: false
+  light: false
+  mcp_timeout_seconds: 30
+  memory_store: true
+  post_task: true
+  route: true
+  transport: auto
+  use_cli: true
+whatsapp_digest:
+  cron_allowed_recipients:
+  - 558592286099@s.whatsapp.net
+  - 120363158094049813@g.us
+  enabled: false
+  inbound_enabled: true
+  inbound_sync_enabled: true
+  interval_seconds: 3600
+  recipient: 558591736779@s.whatsapp.net
+  send_command: null
+  timeout_seconds: 30
+gois_lite:
+  enabled: true
+  database:
+    backend: sqlite
+    sqlite_path: ./.stack/accounts
+    url: ''

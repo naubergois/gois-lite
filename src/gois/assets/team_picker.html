@@ -1,0 +1,167 @@
+  <div class="team-picker-overlay" id="team-picker-overlay" hidden>
+    <div class="team-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="team-picker-title">
+      <div class="team-picker-head">
+        <div>
+          <h2 id="team-picker-title">Escolher time</h2>
+          <p class="team-picker-sub" id="team-picker-sub">Veja contexto, vincule pasta local, cadastre artigos, envie normas e gerencie contatos do time antes de alocar a conversa.</p>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+          <button type="button" id="team-picker-reload-btn" title="Recarregar lista de times"
+            style="border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:6px;padding:4px 8px;font-size:13px;cursor:pointer;">↺</button>
+          <button type="button" class="team-picker-close" id="team-picker-close" aria-label="Fechar">×</button>
+        </div>
+      </div>
+      <div class="team-picker-main">
+        <div class="team-picker-sidebar">
+          <div class="team-picker-search-wrap">
+            <input type="search" class="team-picker-search" id="team-picker-search"
+                   placeholder="Buscar time…" autocomplete="off">
+          </div>
+          <div class="team-picker-list" id="team-picker-list">
+            <div class="team-picker-preview-empty">A carregar times…</div>
+          </div>
+          <div class="team-picker-create">
+            <input type="text" id="team-picker-new-name" placeholder="Novo time…">
+            <button type="button" class="ctrl" id="team-picker-create-btn">Criar</button>
+          </div>
+        </div>
+        <div class="team-picker-preview" id="team-picker-preview">
+          <div class="team-picker-preview-empty">Selecione um time à esquerda para ver o contexto completo.</div>
+        </div>
+      </div>
+      <div class="team-picker-foot">
+        <button type="button" class="ctrl" id="team-picker-cancel">Cancelar</button>
+        <button type="button" class="ctrl primary" id="team-picker-select-btn" disabled>Usar este time</button>
+      </div>
+    </div>
+  </div>
+  <div class="chat-team-contact-overlay" id="chat-team-contact-overlay" hidden>
+    <div class="chat-team-contact-dialog" role="dialog" aria-modal="true" aria-labelledby="chat-team-contact-title">
+      <div class="chat-team-contact-head">
+        <div>
+          <h3 id="chat-team-contact-title">Buscar contato</h3>
+          <p class="chat-team-contact-sub" id="chat-team-contact-sub">Agenda WhatsApp e contatos dos times</p>
+        </div>
+        <button type="button" class="team-picker-close" id="chat-team-contact-close" aria-label="Fechar">×</button>
+      </div>
+      <div class="chat-team-contact-search">
+        <input type="search" id="chat-team-contact-search" placeholder="Buscar por nome, telefone, JID…" autocomplete="off">
+        <div class="chat-team-contact-filters" id="chat-team-contact-filters">
+          <button type="button" class="active" data-filter="all">Todos</button>
+          <button type="button" data-filter="dm">Individuais</button>
+          <button type="button" data-filter="group">Grupos</button>
+        </div>
+        <div class="chat-team-contact-manual">
+          <input type="text" id="chat-team-contact-manual-phone" placeholder="Número não listado (+55… ou só dígitos)" autocomplete="off">
+          <div class="hint">Use se o contato não aparecer na agenda — será adicionado ao time e, se marcado abaixo, à allowlist geral.</div>
+        </div>
+      </div>
+      <div class="chat-team-contact-list" id="chat-team-contact-list"></div>
+      <div class="chat-team-contact-allowlist" id="chat-team-contact-allowlist-row" hidden>
+        <label><input type="checkbox" id="chat-team-contact-allowlist" checked> Incluir na allowlist geral de envio WhatsApp</label>
+      </div>
+      <div class="chat-team-contact-foot">
+        <div class="sel" id="chat-team-contact-selection">Nenhum selecionado</div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="ctrl" id="chat-team-contact-cancel">Cancelar</button>
+          <button type="button" class="ctrl primary" id="chat-team-contact-confirm" disabled>Adicionar ao time</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="team-norma-preview-overlay" id="team-norma-preview-overlay" hidden>
+    <div class="team-norma-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="team-norma-preview-title">
+      <div class="team-norma-preview-head">
+        <div>
+          <h3 id="team-norma-preview-title">Preview — norma / documento</h3>
+          <p class="team-norma-preview-sub" id="team-norma-preview-sub">Revise o conteúdo antes de salvar no time ou fixar no contexto da conversa.</p>
+        </div>
+        <button type="button" class="team-picker-close" id="team-norma-preview-close" aria-label="Fechar">×</button>
+      </div>
+      <div class="team-norma-preview-tabs" id="team-norma-preview-tabs">
+        <button type="button" class="active" data-tab="upload">📎 Upload</button>
+        <button type="button" data-tab="whatsapp">📱 WhatsApp</button>
+      </div>
+      <div class="team-norma-preview-body">
+        <div class="team-norma-preview-side">
+          <div id="team-norma-preview-upload-panel">
+            <input type="file" id="team-norma-preview-file" accept=".pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.md,.txt,.tex,.json,.yaml,.yml,.csv,text/plain,text/markdown" hidden>
+            <button type="button" class="ctrl" id="team-norma-preview-pick-file" style="width:100%;">Escolher arquivo…</button>
+            <label for="team-norma-preview-name" style="font-size:10px;color:var(--muted);">Nome no time</label>
+            <input type="text" id="team-norma-preview-name" placeholder="norma.pdf">
+          </div>
+          <div id="team-norma-preview-wa-panel" hidden>
+            <input type="search" id="team-norma-preview-wa-query" placeholder="Buscar no WhatsApp (pdf, norma…)">
+            <input type="text" id="team-norma-preview-wa-chat" placeholder="Grupo/chat (opcional)">
+            <button type="button" class="ctrl" id="team-norma-preview-wa-search" style="width:100%;">Buscar mensagens</button>
+            <div class="team-norma-preview-wa-list" id="team-norma-preview-wa-list">
+              <div class="team-norma-preview-empty">Busque mensagens com PDF, documento ou texto longo.</div>
+            </div>
+          </div>
+          <div class="team-norma-preview-status" id="team-norma-preview-status"></div>
+        </div>
+        <div class="team-norma-preview-main">
+          <div class="team-norma-preview-viewer" id="team-norma-preview-viewer">
+            <div class="team-norma-preview-empty" id="team-norma-preview-viewer-empty">Selecione um arquivo ou mensagem do WhatsApp.</div>
+            <iframe id="team-norma-preview-pdf" style="display:none;" title="Preview PDF"></iframe>
+          </div>
+          <div class="team-norma-preview-excerpt" id="team-norma-preview-excerpt"></div>
+        </div>
+      </div>
+      <div class="team-norma-preview-foot">
+        <button type="button" class="ctrl" id="team-norma-preview-cancel">Cancelar</button>
+        <button type="button" class="ctrl" id="team-norma-preview-context" disabled>📎 Só contexto da conversa</button>
+        <button type="button" class="ctrl primary" id="team-norma-preview-save" disabled>Salvar no time</button>
+      </div>
+    </div>
+  </div>
+  <div class="team-article-folder-overlay" id="team-article-folder-overlay" hidden>
+    <div class="team-article-folder-dialog" role="dialog" aria-modal="true" aria-labelledby="team-article-folder-title">
+      <div class="team-article-folder-head">
+        <div>
+          <h3 id="team-article-folder-title">Vincular pasta de artigos</h3>
+          <p class="team-article-folder-sub">Selecione uma pasta no disco ou envie do seu computador para cadastrar e vincular ao time.</p>
+        </div>
+        <button type="button" class="team-picker-close" id="team-article-folder-close" aria-label="Fechar">×</button>
+      </div>
+      <div class="team-article-folder-tabs" id="team-article-folder-tabs">
+        <button type="button" class="active" data-tab="disk">📁 Pasta no disco</button>
+        <button type="button" data-tab="upload">📎 Enviar pasta</button>
+      </div>
+      <div class="team-article-folder-body">
+        <div id="team-article-folder-disk-panel">
+          <div class="team-article-folder-field">
+            <label for="team-article-folder-name">Nome do workspace</label>
+            <input type="text" id="team-article-folder-name" placeholder="Ex: Artigos IA">
+          </div>
+          <div class="team-article-folder-field" style="margin-top:10px;">
+            <label for="team-article-folder-path">Caminho selecionado</label>
+            <input type="text" id="team-article-folder-path" placeholder="/caminho/da/pasta" readonly>
+          </div>
+          <div class="team-article-folder-browser" id="team-article-folder-browser">
+            <div class="path" id="team-article-folder-current">—</div>
+            <button type="button" class="ctrl entry" id="team-article-folder-up">⬆ Subir</button>
+            <div id="team-article-folder-list"></div>
+          </div>
+        </div>
+        <div id="team-article-folder-upload-panel" hidden>
+          <p style="margin:0 0 10px;font-size:11px;color:var(--muted);line-height:1.45;">
+            Escolha uma pasta do seu computador com arquivos <code>.tex</code> (e figuras, <code>.bib</code>, etc.).
+            Os ficheiros são copiados para a área do time e a pasta é vinculada automaticamente.
+          </p>
+          <input type="file" id="team-article-folder-input" webkitdirectory directory multiple hidden>
+          <button type="button" class="ctrl primary" id="team-article-folder-pick" style="width:100%;">Escolher pasta…</button>
+          <div class="team-article-folder-field" style="margin-top:10px;">
+            <label for="team-article-folder-upload-name">Nome no time</label>
+            <input type="text" id="team-article-folder-upload-name" placeholder="Nome da pasta (opcional)">
+          </div>
+          <div id="team-article-folder-upload-summary" style="font-size:11px;color:var(--muted);margin-top:8px;"></div>
+        </div>
+        <div class="team-article-folder-status" id="team-article-folder-status"></div>
+      </div>
+      <div class="team-article-folder-foot">
+        <button type="button" class="ctrl" id="team-article-folder-cancel">Cancelar</button>
+        <button type="button" class="ctrl primary" id="team-article-folder-confirm">Vincular ao time</button>
+      </div>
+    </div>
+  </div>

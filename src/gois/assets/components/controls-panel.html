@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controls Panel - Componente Melhorado</title>
+  <link rel="stylesheet" href="controls-panel.css">
+</head>
+<body>
+  <div class="controls-panel">
+    <div class="controls-header">
+      <button class="controls-toggle" id="toggle-btn" aria-expanded="true" title="Expandir/Colapsar controles">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <h3 class="controls-title">
+        <span class="controls-icon">⚙️</span>
+        Controles
+      </h3>
+    </div>
+
+    <div class="controls-content" id="controls-content">
+      <!-- Dropdowns Row -->
+      <div class="controls-row">
+        <div class="select-dropdown">
+          <label class="select-label">Time</label>
+          <div class="select-wrapper">
+            <button class="select-button" id="team-btn">
+              <span class="select-button-label">Artigo Haron</span>
+              <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="select-menu" hidden>
+              <button class="select-option">Sem time</button>
+              <button class="select-option selected">Artigo Haron</button>
+              <button class="select-option">DeepSeek Chat</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="select-dropdown">
+          <label class="select-label">Modelo</label>
+          <div class="select-wrapper">
+            <button class="select-button" id="model-btn">
+              <span class="select-button-label">DeepSeek Chat</span>
+              <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="select-menu" hidden>
+              <button class="select-option selected">DeepSeek Chat</button>
+              <button class="select-option">GPT-4</button>
+              <button class="select-option">Claude 3</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="select-dropdown">
+          <label class="select-label">Saída</label>
+          <div class="select-wrapper">
+            <button class="select-button" id="output-btn">
+              <span class="select-button-label">Auto</span>
+              <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="select-menu" hidden>
+              <button class="select-option selected">Auto</button>
+              <button class="select-option">Agente</button>
+              <button class="select-option">Kanban</button>
+              <button class="select-option">Task</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="select-dropdown">
+          <label class="select-label">Tokens</label>
+          <div class="select-wrapper">
+            <button class="select-button" id="tokens-btn">
+              <span class="select-button-label">Balanceado</span>
+              <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="select-menu" hidden>
+              <button class="select-option">Econômico</button>
+              <button class="select-option selected">Balanceado</button>
+              <button class="select-option">Completo</button>
+              <button class="select-option">Debug</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row 1 -->
+      <div class="controls-row buttons">
+        <button class="btn btn-secondary" title="Gerar minicurrículo profissional com preview">
+          📇 Minicurrículo
+        </button>
+        <button class="btn btn-secondary" title="Gerar imagem ou vídeo com modelos Replicate">
+          🎬 Replicate
+        </button>
+        <button class="btn btn-secondary" title="Ler respostas em voz alta">
+          Fala: off
+        </button>
+        <button class="btn btn-secondary" title="Liga/desliga a conexão com o OpenClaw">
+          OpenClaw: on
+        </button>
+        <button class="btn btn-secondary btn-swarm" title="Modo Swarm — orquestração RuFlo">
+          🌀 Swarm: off
+        </button>
+      </div>
+
+      <!-- Action Buttons Row 2 -->
+      <div class="controls-row buttons">
+        <button class="btn btn-secondary" title="Anexar ficheiros de texto, imagem ou áudio">
+          Anexar
+        </button>
+        <button class="btn btn-secondary" title="Enviar documentos fixos ao contexto">
+          Docs
+        </button>
+        <button class="btn btn-secondary" title="Ferramentas acadêmicas — template LaTeX">
+          📚
+        </button>
+        <button class="btn btn-secondary" title="Enviar foto para cadastrar personagem">
+          👤 Personagem
+        </button>
+        <button class="btn btn-secondary" title="Buscar personagens cadastrados">
+          🔍 Personagens
+        </button>
+      </div>
+
+      <!-- Info Section -->
+      <div class="controls-info">
+        <span class="info-badge">MCP: -55 ativas</span>
+        <span class="info-badge">73 Saída ligadas</span>
+        <span class="info-badge">310 catálogo</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="controls-panel.js"></script>
+</body>
+</html>

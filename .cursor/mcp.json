@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "gois-cards": {
+      "command": "/Volumes/NAUBER/qclawmonitor/.venv/bin/python",
+      "args": [
+        "-m",
+        "gois.mcp_cards_server"
+      ],
+      "env": {
+        "PYTHONPATH": "/Volumes/NAUBER/gois-lite/src",
+        "GOIS_LITE": "1",
+        "GOIS_LITE_DB_BACKEND": "sqlite",
+        "GOIS_STACK_ROOT": "/Volumes/NAUBER/gois-lite/.stack",
+        "GOIS_KANBAN_WORKDIRS": "/Volumes/NAUBER/gois-lite"
+      },
+      "autoApprove": [
+        "list_kanban_boards",
+        "list_teams",
+        "get_cards",
+        "get_card_detail",
+        "get_my_cards",
+        "get_cards_todo",
+        "create_card",
+        "move_card",
+        "update_card",
+        "kanban_ide_handoff"
+      ]
+    }
+  }
+}

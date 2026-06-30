@@ -1,0 +1,444 @@
+/* ============================================================
+   Controls Panel - Design System
+   Modern, accessible component with proper spacing & borders
+   ============================================================ */
+
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1e222c;
+  --border: #262b36;
+  --fg: #e6e8ee;
+  --muted: #8a93a6;
+  --ok: #3ddc84;
+  --bad: #ff5a5f;
+  --warn: #ffb454;
+  --accent: #6aa9ff;
+  --accent-dim: rgba(106, 169, 255, 0.1);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.24);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f6fa;
+    --panel: #fff;
+    --panel-2: #f0f2f7;
+    --border: #e1e4ec;
+    --fg: #15171c;
+    --muted: #5b6477;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   Controls Panel Container
+   ============================================================ */
+
+.controls-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.controls-panel:hover {
+  border-color: rgba(106, 169, 255, 0.3);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+
+.controls-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(106, 169, 255, 0.05), transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.controls-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  flex-shrink: 0;
+  background: var(--panel-2);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.controls-toggle:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.controls-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.controls-toggle[aria-expanded="false"] svg {
+  transform: scaleY(-1);
+}
+
+.controls-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-icon {
+  font-size: 16px;
+}
+
+/* ============================================================
+   Content Area
+   ============================================================ */
+
+.controls-content {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 600px;
+  overflow-y: auto;
+  transition: var(--transition);
+}
+
+.controls-content.collapsed {
+  max-height: 0;
+  padding: 0 16px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Row Layout
+   ============================================================ */
+
+.controls-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.controls-row.buttons {
+  gap: 8px;
+}
+
+/* ============================================================
+   Select Dropdown Component
+   ============================================================ */
+
+.select-dropdown {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.select-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: var(--panel-2);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition);
+}
+
+.select-button:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 0 1px rgba(106, 169, 255, 0.2);
+}
+
+.select-button:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.select-button-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  font-weight: 600;
+}
+
+.select-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+
+.select-button[aria-expanded="true"] .select-chevron {
+  transform: rotate(180deg);
+}
+
+/* ============================================================
+   Dropdown Menu
+   ============================================================ */
+
+.select-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-menu[hidden] {
+  display: none !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.select-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--fg);
+  border: none;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.select-option:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.select-option.selected {
+  background: rgba(106, 169, 255, 0.15);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.select-option:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(106, 169, 255, 0.2);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+}
+
+.btn-secondary:hover {
+  background: rgba(106, 169, 255, 0.08);
+}
+
+.btn-swarm {
+  background: rgba(106, 169, 255, 0.1);
+  color: var(--accent);
+  border-color: rgba(106, 169, 255, 0.3);
+}
+
+.btn-swarm:hover {
+  background: rgba(106, 169, 255, 0.15);
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   Info Section
+   ============================================================ */
+
+.controls-info {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: rgba(106, 169, 255, 0.05);
+  border: 1px solid rgba(106, 169, 255, 0.1);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .controls-panel {
+    border-radius: var(--radius-md);
+  }
+
+  .controls-header {
+    padding: 12px 14px;
+  }
+
+  .controls-content {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .controls-row {
+    gap: 10px;
+  }
+
+  .select-dropdown {
+    min-width: 120px;
+  }
+
+  .btn {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select-chevron,
+  .controls-toggle svg {
+    transition: none;
+  }
+
+  .select-menu {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Scrollbar Styling
+   ============================================================ */
+
+.controls-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.controls-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.controls-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.controls-content::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}

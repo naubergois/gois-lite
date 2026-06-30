@@ -1,0 +1,508 @@
+qclaw:
+  name: qclaw
+
+  # Primary health signal: configure at least one of process_pattern / health_url.
+  # process_pattern is matched with `pgrep -f` — fine for paths or names.
+  process_pattern: /Applications/QClaw.app/Contents/MacOS/QClaw
+
+  # Secondary HTTP probe (QClaw: openclaw-gateway must return 200 or the UI shows
+  # "Service connection error" even when the Electron shell is alive).
+  health_url: http://127.0.0.1:61784/
+  gateway_port_file: ~/.qclaw-oversea/qclaw.json
+  expected_status: 200
+  timeout_seconds: 10.0
+
+  # Optional tertiary probe: AppleScript "Not Responding" detector.
+  # Catches UI hangs that pgrep cannot see (process alive, window frozen).
+  # Requires Accessibility/Automation permission for whatever runs gois.
+  hang_check:
+    enabled: true         # macOS AppleScript probe; skipped on Linux/CI
+    app_name: QClaw       # System Events process name; falls back to qclaw.name
+    timeout_seconds: 3.0  # how long to wait for the app to answer
+    failure_threshold: 2  # consecutive hang probes before failing health
+
+  # Recovery commands. Leave null to run in diagnose-only mode.
+  start_command: ["open", "-a", "QClaw"]
+  stop_command: ["osascript", "-e", "tell application \"QClaw\" to quit"]
+  working_dir: null
+
+  log_paths:
+    - /private/tmp/whatsapp-bridge-daemon.log
+
+monitor:
+  interval_seconds: 15
+  failure_threshold: 3        # consecutive failures before triggering the agent
+  cooldown_seconds: 60        # min seconds between recovery attempts
+  max_recovery_attempts: 5    # safety cap per monitor lifetime
+  leader_election:
+    enabled: true               # one leader for recovery/cron/reaper loops
+    lease_seconds: 30
+    renew_interval_seconds: 10
+    lock_key: monitor:leader
+    file_lock_name: .monitor-leader.lock
+
+dashboard_render:
+  # Ajuste fino do carregamento em partes do monitor (/, /ruflo).
+  dynamic_chunking: true
+  # Tempo máximo por frame para montar linhas (ms). Menor = UI mais fluida.
+  frame_budget_ms: 9.0
+  # Lote base; o modo dinâmico ajusta para cima/baixo conforme volume/dispositivo.
+  base_chunk_size: 40
+  agents_chunk_size: 35
+  ruflo_agents_chunk_size: 30
+  cron_chunk_size: 25
+  # Polling UI (ms) — monitor / e painel /swarm
+  status_poll_ms: 3000
+  ruflo_poll_ms: 15000
+  swarm_poll_ms: 15000
+
+agent:
+  # OpenAI-compatible client. Defaults to DeepSeek. Swap model/base_url and
+  # api_key_env to point at any other provider (Groq, Together, OpenAI itself).
+  model: deepseek-chat
+  base_url: https://api.deepseek.com
+  api_key_env: DEEPSEEK_API_KEY
+  timeout_seconds: 90
+  max_tool_iterations: 1000
+  system_prompt: |
+    You are an SRE agent responsible for diagnosing and recovering the qclaw service.
+    Use the available tools to: probe the health endpoint, inspect process state,
+    read log tails, and as a last resort restart the service. Be conservative:
+    gather evidence first, restart only when the failure mode requires it.
+
+notifier:
+  log_file: ./gois.log
+  webhook_url: null           # optional: Slack/Discord-compatible incoming webhook
+
+whatsapp_digest:
+  # Envia o estado dos agentes para o WhatsApp a cada hora (via wacli).
+  enabled: false
+  interval_seconds: 3600
+  recipient: null             # e.g. 558591736779@s.whatsapp.net
+  # cron_allowed_recipients:   # extra DM targets for cron scripts (allowlist)
+  #   - 558592286099@s.whatsapp.net
+  # Opcional: wrapper que lida com lock do wacli (recomendado no macOS):
+  # send_command:
+  #   - bash
+  #   - ~/.qclaw-oversea/workspace/scripts/wacli-send.sh
+  send_command: null
+  timeout_seconds: 30
+  # Chat: qclaw_wacli_unlock (destravar store), qclaw_wacli_auth_qr (QR + pareamento)
+  # wacli_bin: wacli
+  # wacli_store_dir: ~/.wacli
+  # wacli_auth_timeout_seconds: 25
+  # wacli_auth_wait_seconds: 120
+  # async_queue: true — fila em background; não bloqueia health/reaper/chat
+  # Conversar com o seu número (telefone + chat em /chat?whatsapp=1):
+  # inbound_enabled: true
+  # inbound_webhook_secret: null   # mesmo valor que --webhook-secret no wacli sync
+  # inbound_auto_reply: true       # mensagens no WhatsApp → agente → resposta no telefone
+  # inbound_sync_enabled: true     # monitor: `wacli sync --webhook` → POST /whatsapp/inbound
+  # inbound_sync_enabled: false    # QClaw: daemon whatsapp-listener-daemon.mjs (ver README)
+  # inbound_session_key: null      # auto: agent:main:whatsapp:dm:+<seu número>
+
+# Busca diária de skills novas (repo bundled, Hermes recomendadas, ClawHub).
+skill_discovery:
+  enabled: true
+  interval_seconds: 86400        # 24h
+  startup_delay_seconds: 180     # primeira varredura após subir o monitor
+  state_path: ./.stack/skill_suggestions/state.json
+  max_suggestions: 12
+  bundled_repo_skills: true      # skills/ do gois ainda não no OpenClaw
+  hermes_recommended: true       # skills dev recomendadas ausentes no Hermes
+  # bundled_skills_dir: ./skills  # opcional; padrão = pasta skills/ do repo
+  clawhub_enabled: true
+  clawhub_base_url: https://clawhub.ai
+  clawhub_search_queries:
+    - coding
+    - automation
+    - monitoring
+    - whatsapp
+    - cron
+  clawhub_browse_all: true       # também consulta ClawHub com "*"
+  clawhub_limit_per_query: 8
+  notify_whatsapp: true          # avisa no WhatsApp quando houver novidades
+  notify_dashboard: true         # banner no painel Skills em /chat
+
+log_scanner:
+  enabled: true
+  interval_seconds: 30
+  # On match, escalate to the recovery agent ONLY if the health check is also
+  # currently failing (consecutive_failures > 0). Logs alone are not enough to
+  # bounce a process — too easy to flap on transient network noise. Still
+  # respects cooldown + max_recovery_attempts.
+  trigger_recovery: true
+  paths:
+    - /private/tmp/whatsapp-bridge-daemon.log
+    - /private/tmp/qclaw-listener.log
+    # Optional (adjust to your install):
+    # - ~/.qclaw-oversea/workspace/.whatsapp-bridge/bridge.log
+    # - ~/.openclaw/logs/gateway.log
+    # - ~/.hermes/logs/gateway.log
+  patterns:
+    # The exact in-app error the user wants caught:
+    - {name: service_connection_error, pattern: "Service connection error"}
+    - {name: auto_recovery_message,    pattern: "auto-recovery"}
+    - {name: restart_app_message,      pattern: "try restarting the app"}
+    # Bridge / openclaw failure modes seen in the wild:
+    - {name: sync_dead,                pattern: "Sync dead"}
+    - {name: sync_crash,               pattern: "Sync exited \\(null\\)"}
+    - {name: stale_sync_kill,          pattern: "Killed stale sync PID"}
+    - {name: gateway_startup_failed,   pattern: "Gateway failed to start"}
+    - {name: spawn_etimedout,          pattern: "spawnSync .* ETIMEDOUT"}
+    - {name: ws_abnormal_close,        pattern: "webchat disconnected code=100[16]"}
+    - {name: ws_service_restart,       pattern: "code=1012 reason=service restart"}
+    - {name: health_monitor_restart,   pattern: "health-monitor: restarting"}
+    - {name: hermes_gateway_shutdown,  pattern: "Received SIGTERM — initiating shutdown"}
+    - {name: hermes_gateway_stopped,   pattern: "Gateway stopped"}
+    - {name: hermes_gateway_exit,      pattern: "Exiting with code 1"}
+    - {name: hermes_cron_failed,       pattern: "cron\\.scheduler: Job .* failed"}
+    - {name: hermes_gateway_crash,     pattern: "gateway\\.exit_nonzero"}
+
+error_log:
+  # Log de erros em http://127.0.0.1:9101/erros
+  enabled: true
+  tail_lines_per_file: 400
+  max_errors: 500
+  include_monitor_events: true
+  # extra_paths:
+  #   - ./.agent-orchestrator/orchestrator.log
+
+ruflo_chat:
+  # Chat RuFlo em http://127.0.0.1:9101/chat/ruflo — routing/memória via npx ruflo@latest
+  # e resposta LLM partilhada com openclaw_chat (requer openclaw_chat.enabled).
+  # Se quiser evitar respostas no estilo "Vou executar / bash / copiar", defina
+  # system_prompt para só mostrar comandos quando o usuário pedir explicitamente.
+  enabled: true
+  # project_dir: /path/to/repo   # default: workspace do openclaw.json ou cwd
+  ruflo_bin: npx
+  ruflo_args: ["-y", "ruflo@latest"]
+  command_timeout_seconds: 45
+  status_cache_seconds: 5
+  status_probe_timeout_seconds: 8
+  status_probe_hive: true   # false para painel só-swarm (~8s mais rápido)
+  status_alert_latency_ms: 12000
+  memory_search_enabled: true
+  memory_search_limit: 5
+  # Avisos periódicos no chat enquanto o RuFlo processa (em segundos).
+  user_checkin_interval_seconds: 5
+  hosted_ui_url: https://flo.ruv.io/
+  local_ui_url: http://127.0.0.1:3000/
+  sessions_limit: 80
+  messages_limit: 120
+  # system_prompt: |
+  #   Você é o assistente de orquestração RuFlo no gois.
+  #   Responda de forma direta, curta e em português.
+  #   NÃO use o formato "Vou executar", "bash", "copiar" por padrão.
+  #   NÃO gere blocos de comando/shell automaticamente.
+  #   Só forneça comandos quando o usuário pedir explicitamente.
+  #   Quando o usuário pedir para criar, alterar, listar, pausar ou executar jobs de cron do Hermes/RuFlo, use a skill qclaw-ruflo-cron-jobs.
+  #   Quando o pedido for apenas de saúde/diagnóstico dos cron jobs, use a skill qclaw-hermes-cron-health.
+  #   Quando o tema for cron/jobs, mencione na resposta que está seguindo a skill qclaw-ruflo-cron-jobs.
+
+swarm_routing:
+  # Liberta checkpoints running abandonados (s). Env QCLAW_SWARM_CHECKPOINT_STALE_SECONDS tem prioridade.
+  checkpoint_stale_seconds: 7200
+  # Roteamento custo/qualidade por nó (RouteLLM heurístico) — poupa latência/custo em passos simples.
+  cost_quality_routing: true
+  cost_router_backend: heuristic
+  cost_threshold: 0.5
+  # HITL: pausa antes de nós sensíveis (grafo Hermes + motor RuFlo).
+  hitl_enabled: false
+  require_approval_for:
+    - deploy
+    - release
+    - reviewer
+  conditional_handoff: false
+  max_steps: 50
+
+swarm_robots:
+  cache_seconds: 20
+  sse_enabled: true
+  sse_chunk_size: 8
+
+# swarm_ruflo_hooks.light: true — execução rápida (sem CLI memory_store/route por nó).
+# POST /swarm/graph/run {"light": true} força light numa corrida só.
+
+dashboard_render:
+  swarm_poll_ms: 20000
+  status_poll_ms: 3000
+  ruflo_poll_ms: 15000
+
+openclaw_chat:
+  # Chat em http://127.0.0.1:9101/chat — histórico à esquerda.
+  # backend: deepseek = agent.* LLM + SKILL.md do QClaw (requer DEEPSEEK_API_KEY)
+  # backend: openclaw_cli = `openclaw agent` (requer openclaw_doctor paths)
+  enabled: true
+  default_agent: main
+  default_session_key: agent:main:gois-dashboard
+  qclaw_tools_enabled: true
+  # HeyGen Remote MCP via OpenClaw (skill qclaw-heygen-mcp, tool qclaw_heygen_via_openclaw).
+  # Setup: ./scripts/setup_heygen_openclaw_mcp.sh && openclaw mcp login heygen
+  heygen_mcp_enabled: true
+  # Suno MCP via OpenClaw (skill qclaw-suno-mcp, tool qclaw_suno_via_openclaw).
+  # Setup: configure ACEDATACLOUD_API_TOKEN em /env-keys && ./scripts/setup_suno_openclaw_mcp.sh
+  suno_mcp_enabled: true
+  virtual_band_enabled: true
+  # Thumbnails YouTube/redes via API Roteiro Viral (skill qclaw-chat-roteiro-thumbnails).
+  roteiro_thumbnails_enabled: true
+  # MongoDB read-only do Roteiro Viral (skill qclaw-chat-roteiro-mongo).
+  roteiro_mongo_enabled: true
+  shell_enabled: true
+  shell_timeout_seconds: 120
+  shell_max_output_chars: 12000
+  # Controlo nativo do desktop macOS (screenshot, clique, teclado, janelas).
+  # Requer cliclick (brew install cliclick) + permissões Acessibilidade/Gravação de Ecrã.
+  # macOS: execute uma vez ./scripts/setup-macos-desktop-python.sh para o alerta
+  # "python3.13 deseja acessar dados de outros apps" não voltar a cada mensagem.
+  desktop_control_enabled: true
+  desktop_screenshot_max_width: 1280
+  desktop_screenshot_quality: 70
+  # shell_working_dir: /Users/you/project
+  # async_send: true — POST /openclaw/send responde logo; o agente corre em background
+  # e publica mensagens de progresso (role status) no histórico.
+  async_send: true
+  history_enabled: true
+  history_db_path: ./.stack/chat/history.sqlite3
+  chroma_enabled: true
+  chroma_path: ./.stack/chat/chroma
+  context_retrieval_limit: 8
+  # Renomeia "Nova conversa …" após N mensagens (user+assistant) com título gerado pelo modelo.
+  auto_title_after_messages: 2
+  max_tool_iterations: 1000
+  # Cap de schemas de ferramentas no LLM (None = preset do modo Tokens; UI /chat «Disp.»).
+  # tools_cap_override: 128
+  backend: deepseek
+  # Modelo LLM padrão (catálogo em chat_models.py; chaves via .env / OpenClaw / Hermes)
+  default_model_id: deepseek-chat   # deepseek-v4-flash só quando escolhido no seletor do chat
+  max_attachment_bytes: 8388608
+  max_attachments: 6
+  attachments_temp_dir: ./.stack/chat/attachments  # anexos vão para disco; o modelo recebe o caminho
+  # models: []  # lista opcional de ChatModelEntry; vazio = catálogo embutido
+  send_timeout_seconds: 600
+  sessions_limit: 80
+  messages_limit: 120
+  history_limit: 40
+  # 0 = incluir todas as skills no catálogo enviado ao chat.
+  max_skills_in_prompt: 0
+  max_skill_body_chars: 12000
+  # Skill embutida skills/qclaw-hermes-cron-health/ — use no chat para saúde dos crons Hermes
+  # Skills LLM: qclaw-llm-models, qclaw-llm-coding, qclaw-llm-perplexity, qclaw-nano-banana-pro, …
+  # Desktop macOS: skill qclaw-macos-desktop + ferramentas qclaw_desktop_* (desktop_control_enabled)
+  # (ferramenta qclaw_hermes_cron_health; requer hermes + qclaw_tools_enabled: true).
+
+openclaw_doctor:
+  # Auto-run `openclaw doctor --fix` when the log scanner matches one of the
+  # trigger_patterns below (matched against the `name` field of
+  # log_scanner.patterns). Repairs ~/.openclaw/openclaw.json from .bak when the
+  # gateway can't parse it — usual fix for "Service connection error" in the UI.
+  # The recovery LLM agent also gets this as a callable tool.
+  enabled: false
+  # All three paths auto-detect under:
+  # 1) ./.stack/openclaw/bundle (single-project mode), or
+  # 2) ~/Library/Application Support/QClaw/openclaw (legacy install)
+  # when null. Set them only for non-standard installs.
+  bin_path: null              # e.g. /path/to/openclaw/config/bin/openclaw
+  node_path: null             # e.g. /path/to/openclaw/config/bin/node
+  mjs_path: null              # e.g. /path/to/openclaw/node_modules/openclaw/openclaw.mjs
+  cooldown_seconds: 300       # at most one auto-fix every N seconds
+  timeout_seconds: 120        # SIGKILL the doctor subprocess after N seconds
+  # When enabled, list log_scanner pattern *names* (not regex):
+  trigger_patterns: []
+  # trigger_patterns:
+  #   - service_connection_error
+  #   - auto_recovery_message
+  #   - gateway_startup_failed
+
+reaper:
+  enabled: true
+  interval_seconds: 60        # scan every 60s
+  # Python regex matched against each ps `command`. Default covers the QClaw
+  # bundle helpers plus the openclaw-gateway/agent helpers, which otherwise
+  # survive as orphans when the main QClaw dies.
+  target_pattern: '(/Applications/QClaw\.app/Contents/|openclaw-(gateway|agent)|hermes gateway run|\.hermes/hermes-agent/)'
+  kill_orphan_helpers: true   # SIGTERM matching procs when main is gone
+  sigterm_grace_seconds: 2.0  # then SIGKILL leftovers
+  min_age_seconds: 5.0        # never touch processes younger than this
+
+state:
+  path: ./gois.state.json   # set to null to disable persistence
+
+http:
+  enabled: true
+  host: 127.0.0.1
+  port: 9101                  # serves GET /metrics (Prometheus) and GET /status (JSON)
+
+cron_concurrency:
+  # Semáforo dos crons Hermes — UI em http://127.0.0.1:9101/cron/slots
+  enabled: true
+  max_concurrent: 6
+  # workspace_dir: ~/.qclaw-oversea/workspace   # default: auto via OpenClaw
+  slot_ttl_minutes: 45
+
+auth:
+  enabled: true               # false = dashboard sem login (só em rede local confiável)
+  data_dir: ./.stack/accounts
+  session_ttl_seconds: 604800
+  allow_open_registration: true
+  bootstrap_admin_username: admin
+  bootstrap_admin_password: admin
+  # reset_bootstrap_admin_password: true   # recuperação: repõe admin/admin a cada arranque
+
+# Mídia gerada pela aplicação (imagens, áudio, vídeo, ZIPs, previews do chat).
+# Setup: ./scripts/setup-media-homeoffload.sh --yes
+media_storage:
+  enabled: true
+  root_dir: /Volumes/NAUBER/HomeOffload/qclaw-media
+  fallback_to_stack: true   # usa .stack/chat/* se o volume externo não estiver montado
+
+# Caches npm/temp/pip/ruflo (evita encher /private/tmp e disco interno).
+# Setup: ./scripts/setup-cache-homeoffload.sh --yes
+cache_storage:
+  enabled: true
+  root_dir: /Volumes/NAUBER/HomeOffload/caches
+  fallback_to_stack: true   # usa .stack/cache/* se o volume externo não estiver montado
+
+# Optional: monitor the Hermes Agent gateway alongside QClaw.
+hermes:
+  name: hermes
+  # Perfil entre main e gateway: hermes_cli.main --profile X gateway run
+  process_pattern: hermes dashboard
+  dashboard_url: http://127.0.0.1:9119   # `hermes dashboard` default
+  health_url: null
+  gateway_port_file: null
+  expected_status: 200
+  timeout_seconds: 10.0
+  hang_check:
+    enabled: false
+  # Requires `hermes gateway install` so start/stop talk to launchd.
+  start_command: ["hermes", "gateway", "start"]
+  stop_command: ["hermes", "gateway", "stop"]
+  working_dir: null
+  log_paths:
+    - ./.stack/hermes/logs/gateway.log
+    - ./.stack/hermes/logs/errors.log
+    - ./.stack/hermes/logs/agent.log
+    # - ./.stack/hermes/logs/gateway-exit-diag.log
+    # Legacy install: ~/.hermes/logs/...
+
+hermes_keepalive:
+  enabled: true
+  failure_threshold: 2
+  cooldown_seconds: 30
+  max_recovery_attempts: 10
+  log_trigger_patterns:
+    - hermes_gateway_shutdown
+    - hermes_gateway_stopped
+    - hermes_gateway_exit
+    - hermes_gateway_crash
+
+# Agente DeepSeek + perfil Hermes `hermes-recovery` (SRE: gateway, dashboard, crons).
+hermes_recovery_agent:
+  enabled: true
+  profile_id: hermes-recovery
+  seed_profile_on_start: true
+  llm_enabled: true
+  escalate_after_keepalive_failure: true   # keepalive falhou → LLM com ferramentas Hermes
+  use_llm_instead_of_keepalive: false    # true = só LLM, sem `hermes gateway start` direto
+  # system_prompt: |                     # opcional; sobrescreve o prompt SRE padrão
+
+hermes_dashboard:
+  # gois spawns `hermes dashboard` on startup and keeps it running.
+  enabled: true
+  start_command: ["hermes", "dashboard", "--no-open", "--skip-build"]
+  interval_seconds: 60
+  cooldown_seconds: 60
+  startup_timeout_seconds: 30
+
+# Chat no dashboard gois (/ui) → cria perfis Hermes via linguagem natural.
+# Requer agent.api_key_env (ex. DEEPSEEK_API_KEY) e Hermes dashboard online.
+# Papéis no disco: defina HERMES_HOME no .env (launchd não lê o shell), ex.:
+#   HERMES_HOME=/Volumes/NAUBER/HomeOffload/hermes
+hermes_agent_create:
+  enabled: true
+  seed_role_catalog_on_start: true   # papéis do catálogo no Hermes ao iniciar (only_missing)
+  seed_role_catalog_use_filesystem: true   # clone rápido em ~/.hermes/profiles (recomendado)
+  clone_from_default: true   # copia config/.env do perfil default
+  schedule_enabled: true     # cria cron Hermes após o perfil
+  default_schedule: every 24h
+  # default_workdir: /path/to/your/repo
+  # Agentes de projeto (GitHub): clone em ./.stack/hermes/projects/<perfil>/repo
+  # projects_root: ./.stack/hermes/projects
+  # default_github_branch: main
+  # kanban_filenames: [kanban.yaml, .hermes/kanban.yaml]
+  skill_categories:
+    - software-development
+  cron_accept_hooks: true
+  cron_timeout_seconds: 120
+  dashboard_api_timeout_seconds: 180   # clone de perfil no dashboard pode demorar
+  pause_cron_jobs_during_create: true   # pausa crons ativos até o dashboard estar pronto
+  dashboard_ready_wait_seconds: 90
+  dashboard_ready_poll_seconds: 2
+  profiles_cache_seconds: 120      # cache da lista Hermes (evita re-fetch a cada refresh)
+  profiles_enrich_local_meta: false  # true = lê profile.yaml de cada papel (lento com 500+)
+  kanban_allow_any_workdir: true   # false = só pastas do time/projeto Hermes (mais restrito)
+
+hermes_cron_diagnostic_agent:
+  enabled: true
+  profile_id: hermes-cron-diagnostic
+  seed_profile_on_start: true
+  llm_enabled: true
+  auto_run_on_log_match: false
+  auto_run_on_scheduler_down: true   # structured + LLM diagnosis while scheduler is down
+  cooldown_seconds: 300
+  max_attempts_per_run: 8
+
+hermes_cron_scheduler_agent:
+  enabled: true
+  profile_id: hermes-cron-recovery
+  seed_profile_on_start: true
+  llm_enabled: true
+  auto_recover: true   # invoke LLM agent automatically while scheduler is down
+  cooldown_seconds: 600
+  max_attempts_per_run: 5
+
+hermes_cron_recovery:
+  # Re-run failed Hermes cron jobs when errors.log reports a scheduler failure.
+  enabled: true
+  cooldown_seconds: 600
+  timeout_seconds: 3600
+  accept_hooks: true
+  jobs_path: /Volumes/NAUBER/HomeOffload/hermes/cron/jobs.json   # .stack/hermes → symlink
+  ensure_gateway: true
+  ensure_gateway_interval_seconds: 120
+  ensure_gateway_cooldown_seconds: 300
+  trigger_patterns:
+    - hermes_cron_failed
+
+# ─── Grupo WhatsApp por time ──────────────────────────────────────────────────
+# Cada time pode ter um grupo WhatsApp vinculado. Mensagens com comandos
+# (/card, /mover, /feito, /cards, /status, /prioridade) criam/movem/completam
+# cards no kanban do time. Quando um card é concluído, um email com o resultado
+# é enviado para os emails configurados.
+#
+# Configuração: feita via API ou dashboard em cada time (Teams → Editar → WhatsApp Group).
+# O campo whatsapp_group é gravado no store.json de cada time:
+#
+# Exemplo de registro via API:
+#   POST /api/teams/<team_id>/whatsapp-group
+#   {
+#     "group_jid": "120363045678901234@g.us",
+#     "notify_emails": ["tech-lead@empresa.com", "pm@empresa.com"],
+#     "smtp_host": "smtp.gmail.com",
+#     "smtp_port": 587,
+#     "smtp_user": "monitor@empresa.com",
+#     "smtp_password_env": "TEAM_SMTP_PASSWORD",
+#     "smtp_from": "monitor@empresa.com"
+#   }
+#
+# Comandos suportados no grupo WhatsApp:
+#   /card <título>               → cria card no backlog
+#   /mover TASK-001 doing        → move card para coluna
+#   /feito TASK-001 "resultado"  → marca como concluído + email
+#   /cards [coluna]              → lista cards (opcionalmente por coluna)
+#   /status [TASK-001]           → status geral ou de um card
+#   /prioridade TASK-001 1       → altera prioridade
+#
+# Variáveis de ambiente necessárias:
+#   TEAM_SMTP_PASSWORD  → senha SMTP para envio de emails de resultado
